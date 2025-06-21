@@ -856,19 +856,22 @@
           tienCoc: roomRow[9], khac: roomRow[10], tienDien: roomRow[11],
           tienNuoc: roomRow[12], tongCong: roomRow[13], tienWifi, phiMayLanh
         };
+        
+        const monthText = latestSheetName.replace('Phòng Trọ ', '');
 
         let detailHtml = `
-                    <div class="room-detail">
-                        <h3>🏠 Chi Tiết ${roomDetails.tenPhong || 'N/A'}</h3>
-                        <div class="detail-item"><span>Tiền phòng</span><span>${parseAndFormatCurrency(roomDetails.tienPhong)}</span></div>
-                        <div class="detail-item"><span>Tiền cọc</span><span>${parseAndFormatCurrency(roomDetails.tienCoc)}</span></div>
-                        <div class="detail-item"><span>Số điện cũ</span><span>${roomDetails.soDienCu || 0}</span></div>
-                        <div class="detail-item"><span>Số điện mới</span><span>${roomDetails.soDienMoi || 0}</span></div>
-                        <div class="detail-item"><span>Tiền điện</span><span>${parseAndFormatCurrency(roomDetails.tienDien)}</span></div>
-                        <div class="detail-item"><span>Số nước cũ</span><span>${roomDetails.soNuocCu || 0}</span></div>
-                        <div class="detail-item"><span>Số nước mới</span><span>${roomDetails.soNuocMoi || 0}</span></div>
-                        <div class="detail-item"><span>Tiền nước</span><span>${parseAndFormatCurrency(roomDetails.tienNuoc)}</span></div>
-                `;
+            <div class="room-detail">
+                <h3 style="text-align: center;">🏠 Chi Tiết ${roomDetails.tenPhong || 'N/A'}</h3>
+                <p style="text-align: center; margin-top: -10px; margin-bottom: 20px; color: #555; font-style: italic;">(Dữ liệu ${monthText})</p>
+                <div class="detail-item"><span>Tiền phòng</span><span>${parseAndFormatCurrency(roomDetails.tienPhong)}</span></div>
+                <div class="detail-item"><span>Tiền cọc</span><span>${parseAndFormatCurrency(roomDetails.tienCoc)}</span></div>
+                <div class="detail-item"><span>Số điện cũ</span><span>${roomDetails.soDienCu || 0}</span></div>
+                <div class="detail-item"><span>Số điện mới</span><span>${roomDetails.soDienMoi || 0}</span></div>
+                <div class="detail-item"><span>Tiền điện</span><span>${parseAndFormatCurrency(roomDetails.tienDien)}</span></div>
+                <div class="detail-item"><span>Số nước cũ</span><span>${roomDetails.soNuocCu || 0}</span></div>
+                <div class="detail-item"><span>Số nước mới</span><span>${roomDetails.soNuocMoi || 0}</span></div>
+                <div class="detail-item"><span>Tiền nước</span><span>${parseAndFormatCurrency(roomDetails.tienNuoc)}</span></div>
+        `;
 
         if (roomDetails.tienWifi > 0) detailHtml += `<div class="detail-item"><span>Tiền WiFi</span><span>${parseAndFormatCurrency(roomDetails.tienWifi)}</span></div>`;
         if (roomDetails.phiMayLanh > 0) detailHtml += `<div class="detail-item"><span>Phí máy lạnh</span><span>${parseAndFormatCurrency(roomDetails.phiMayLanh)}</span></div>`;
