@@ -119,6 +119,11 @@
       -moz-appearance: none;
       appearance: none;
     }
+    
+    .form-select:disabled {
+        background-color: #f8f9fa;
+        cursor: not-allowed;
+    }
 
     .form-input:focus,
     .form-select:focus {
@@ -250,21 +255,6 @@
       transform: translateY(-1px)
     }
 
-    .total-section {
-      background: linear-gradient(135deg, #28a745, #20c997);
-      color: #fff;
-      padding: 20px;
-      border-radius: 15px;
-      margin-bottom: 25px;
-      text-align: center
-    }
-
-    .total-amount {
-      font-size: 2em;
-      font-weight: 700;
-      margin-top: 10px
-    }
-
     .room-detail {
       background: rgba(102, 126, 234, .05);
       border-radius: 15px;
@@ -277,14 +267,6 @@
       color: #667eea;
       margin-bottom: 15px;
       font-size: 1.3em
-    }
-
-    .expense-block h4 {
-      color: #764ba2;
-      margin-top: 20px;
-      margin-bottom: 10px;
-      padding-bottom: 5px;
-      border-bottom: 2px solid #e1e8ed;
     }
 
     .detail-item {
@@ -308,12 +290,9 @@
       font-weight: 600;
     }
 
-    /* CSS cho mục Tổng cộng */
     .detail-item.total span {
       color: #dc3545 !important;
-      /* Màu đỏ */
       font-size: 1.2em;
-      /* To hơn */
       font-weight: 700 !important;
     }
 
@@ -401,7 +380,6 @@
 
       .container {
         margin: 0 auto;
-        /* Keep it centered on tablets */
         border-radius: 15px;
         box-shadow: 0 10px 25px rgba(0, 0, 0, .15)
       }
@@ -426,11 +404,6 @@
       .radio-group {
         flex-direction: column;
         gap: 12px
-      }
-
-      .dynamic-field {
-        grid-template-columns: 1fr auto 1fr auto;
-        /* Revert for more space */
       }
     }
 
@@ -491,7 +464,6 @@
       <form id="googleForm" class="form-mode"
         action="https://docs.google.com/forms/d/e/1FAIpQLSceHfeAzo4iCdPUG-d6-1kcVMQDcpSpCiEkHlJkTHwdyExZlw/formResponse"
         method="POST" target="hidden_iframe">
-        <!-- Nội dung form phòng trọ không thay đổi -->
         <div class="form-group">
           <label class="form-label">📋 Chọn Phòng Trọ</label>
           <select class="form-select" id="phongTro" name="entry.956317929" required>
@@ -534,13 +506,13 @@
             <label class="form-label">⚡ Số Điện</label>
             <input type="number" class="form-input" id="soDien" name="entry.766289465" placeholder="Nhập số điện"
               min="0">
-            <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">(Điện 3.500/kWh)</small>
+            <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">(Điện 3500/kWh)</small>
           </div>
           <div class="form-group">
             <label class="form-label">💧 Số Nước</label>
             <input type="number" class="form-input" id="soNuoc" name="entry.611811966" placeholder="Nhập số nước"
               min="0">
-            <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">(Nước 12.000/khối)</small>
+            <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">(Nước 12000/khối)</small>
           </div>
         </div>
         <div class="form-group">
@@ -618,12 +590,21 @@
         </button>
       </form>
 
-      <!-- Div Chi Tiết Nhà Trọ (ĐÃ SỬA) -->
+      <!-- Div Chi Tiết Nhà Trọ -->
       <div id="chiTietForm" class="form-mode hidden">
+        <!-- NEW MONTH/YEAR SELECTOR -->
+        <div class="form-group">
+            <label class="form-label">📅 Chọn Tháng/Năm</label>
+            <select class="form-select" id="monthYearSelect" onchange="handleMonthSelection()">
+                <option value="">-- Vui lòng chờ, đang tải tháng --</option>
+            </select>
+        </div>
+
+        <!-- EXISTING ROOM/OPTION SELECTOR -->
         <div class="form-group">
           <label class="form-label">📋 Chọn Xem Chi Tiết</label>
-          <select class="form-select" id="phongChiTiet" onchange="loadRoomDetail()">
-            <option value="">-- Chọn một mục --</option>
+          <select class="form-select" id="phongChiTiet" onchange="loadRoomDetail()" disabled>
+            <option value="">-- Trước tiên hãy chọn tháng/năm --</option>
             <optgroup label="Phòng Trọ">
               <option value="Phòng trọ 1">Phòng trọ 1</option>
               <option value="Phòng trọ 2">Phòng trọ 2</option>
@@ -666,9 +647,8 @@
 
   <script>
     // --- CONFIGURATION ---
-    // THAY THẾ 'YOUR_GOOGLE_API_KEY' BẰNG API KEY CỦA BẠN
     const SPREADSHEET_ID = '1w-6GXmvM0rtvRo7qTseYXnzovWEAT3BLASLKyTLlJk8';
-    const API_KEY = 'AIzaSyAkEjsZErHu1D29da2QxfyyPV3Ms46y6aE';
+    const API_KEY = 'AIzaSyAkEjsZErHu1D29da2QxfyyPV3Ms46y6aE'; // THAY API KEY CỦA BẠN VÀO ĐÂY
 
     // --- STATE & COUNTERS ---
     let khacCounter = 0;
@@ -697,6 +677,11 @@
       } else if (mode === 'chi-tiet') {
         chiTietForm.classList.remove('hidden');
         buttons[2].classList.add('active');
+        // Populate the selector if it hasn't been populated yet
+        const monthSelect = document.getElementById('monthYearSelect');
+        if (monthSelect.options.length <= 1) { // Only has the initial placeholder
+            populateMonthYearSelector();
+        }
       }
     }
 
@@ -706,16 +691,15 @@
       const containerId = isPhongTro ? 'khacFields' : 'khacFieldsChiTieu';
       const container = document.getElementById(containerId);
       const counter = isPhongTro ? ++khacCounter : ++khacCounterChiTieu;
-
       const fieldDiv = document.createElement('div');
       fieldDiv.className = 'dynamic-field';
       fieldDiv.id = `khacField_${type}_${counter}`;
       fieldDiv.innerHTML = `
-                <input type="text" class="form-input" placeholder="Tên mục">
-                <span style="font-weight: bold; color: #666;">-</span>
-                <input type="number" class="form-input" placeholder="Số tiền">
-                <button type="button" class="remove-btn" onclick="removeKhacField('khacField_${type}_${counter}')">✕</button>
-            `;
+        <input type="text" class="form-input" placeholder="Tên mục">
+        <span style="font-weight: bold; color: #666;">-</span>
+        <input type="number" class="form-input" placeholder="Số tiền">
+        <button type="button" class="remove-btn" onclick="removeKhacField('khacField_${type}_${counter}')">✕</button>
+      `;
       container.appendChild(fieldDiv);
     }
 
@@ -724,21 +708,13 @@
       if (field) field.remove();
     }
 
-    // --- CURRENCY FORMATTING (FINAL FIX) ---
+    // --- CURRENCY FORMATTING ---
     function parseAndFormatCurrency(amount) {
       if (amount === undefined || amount === null || amount === '') return '0 đ';
-
-      // Chỉ giữ lại các chữ số và dấu trừ (cho số âm)
       const cleanAmount = String(amount).replace(/[^0-9-]/g, '');
-
       const number = Number(cleanAmount);
-
       if (isNaN(number)) return '0 đ';
-
-      return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND'
-      }).format(number);
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(number);
     }
 
     // --- FORM & MODAL LOGIC ---
@@ -746,11 +722,8 @@
       if (formSubmitted && submittedFormId) {
         const modalOverlay = document.getElementById('successModalOverlay');
         modalOverlay.classList.add('visible');
-
         const formToReset = document.getElementById(submittedFormId);
-        if (formToReset) {
-          formToReset.reset();
-        }
+        if (formToReset) formToReset.reset();
 
         if (submittedFormId === 'googleForm') {
           document.getElementById('khacFields').innerHTML = '';
@@ -759,96 +732,139 @@
           document.getElementById('khacFieldsChiTieu').innerHTML = '';
           khacCounterChiTieu = 0;
         }
-
         formSubmitted = false;
         submittedFormId = null;
       }
     }
 
     function hideSuccessModal() {
-      const modalOverlay = document.getElementById('successModalOverlay');
-      modalOverlay.classList.remove('visible');
+      document.getElementById('successModalOverlay').classList.remove('visible');
     }
 
-    // --- GOOGLE SHEETS DATA FETCHING (FINAL FIX) ---
+    // --- GOOGLE SHEETS DATA FETCHING ---
+
+    async function populateMonthYearSelector() {
+        const monthSelect = document.getElementById('monthYearSelect');
+        const roomSelect = document.getElementById('phongChiTiet');
+        
+        monthSelect.innerHTML = '<option value="">-- Đang tải danh sách tháng --</option>';
+        monthSelect.disabled = true;
+        roomSelect.disabled = true;
+        roomSelect.value = '';
+
+        if (!API_KEY || API_KEY === 'YOUR_GOOGLE_API_KEY') {
+            monthSelect.innerHTML = '<option value="">Lỗi: API Key không hợp lệ</option>';
+            return;
+        }
+
+        try {
+            const metadataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?fields=sheets.properties.title&key=${API_KEY}`;
+            const metadataResponse = await fetch(metadataUrl);
+            if (!metadataResponse.ok) throw new Error('Không thể lấy danh sách trang tính.');
+            
+            const spreadsheetData = await metadataResponse.json();
+            const allMonths = new Set();
+            const monthRegex = /(\d{1,2})\s*\/\s*(\d{4})/;
+
+            spreadsheetData.sheets.forEach(sheet => {
+                const title = sheet.properties.title;
+                const match = title.match(monthRegex);
+                if (match) {
+                    const month = parseInt(match[1]);
+                    const year = parseInt(match[2]);
+                    allMonths.add(`${month}/${year}`);
+                }
+            });
+            
+            const sortedMonths = Array.from(allMonths).sort((a, b) => {
+                const [m1, y1] = a.split('/').map(Number);
+                const [m2, y2] = b.split('/').map(Number);
+                return new Date(y2, m2 - 1) - new Date(y1, m1 - 1);
+            });
+
+            if (sortedMonths.length === 0) {
+                monthSelect.innerHTML = '<option value="">-- Không tìm thấy tháng --</option>';
+                return;
+            }
+
+            monthSelect.innerHTML = '<option value="">-- Chọn tháng/năm --</option>';
+            sortedMonths.forEach(monthYear => {
+                const option = document.createElement('option');
+                option.value = monthYear;
+                option.textContent = `Tháng ${monthYear}`;
+                monthSelect.appendChild(option);
+            });
+
+            monthSelect.disabled = false;
+
+        } catch (error) {
+            console.error('Lỗi khi tải danh sách tháng:', error);
+            monthSelect.innerHTML = `<option value="">Lỗi: ${error.message}</option>`;
+        }
+    }
+    
+    function handleMonthSelection() {
+        const monthSelect = document.getElementById('monthYearSelect');
+        const roomSelect = document.getElementById('phongChiTiet');
+        const contentDiv = document.getElementById('roomDetailContent');
+
+        if (monthSelect.value) {
+            roomSelect.disabled = false;
+            roomSelect.value = ''; // Reset selection
+            contentDiv.innerHTML = ''; // Clear previous details
+        } else {
+            roomSelect.disabled = true;
+            roomSelect.value = '';
+            contentDiv.innerHTML = '';
+        }
+    }
+
     async function loadRoomDetail() {
+      const monthSelect = document.getElementById('monthYearSelect');
       const roomSelect = document.getElementById('phongChiTiet');
-      const selectedValue = roomSelect.value;
+      const selectedMonth = monthSelect.value;
+      const selectedOption = roomSelect.value;
       const contentDiv = document.getElementById('roomDetailContent');
 
-      if (!selectedValue) {
+      if (!selectedMonth || !selectedOption) {
         contentDiv.innerHTML = '';
         return;
       }
 
       contentDiv.innerHTML = `<div class="room-detail"><p style="text-align: center;">Đang tải dữ liệu...</p></div>`;
 
-      if (!API_KEY || API_KEY === 'YOUR_GOOGLE_API_KEY') {
-        contentDiv.innerHTML = `<div class="room-detail"><p style="text-align: center; color: red;">Lỗi: Vui lòng cung cấp API Key hợp lệ trong mã nguồn.</p></div>`;
-        return;
-      }
-
       try {
-        const metadataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?fields=sheets.properties.title&key=${API_KEY}`;
-        const metadataResponse = await fetch(metadataUrl);
-        if (!metadataResponse.ok) throw new Error(`Không thể lấy danh sách trang tính.`);
-        const spreadsheetData = await metadataResponse.json();
-
-        if (selectedValue === 'tong_chi') {
-          await displayTotalExpenses(spreadsheetData, contentDiv);
-        } else if (selectedValue === 'tinh_toan') {
-          await displayExpenseCalculation(spreadsheetData, contentDiv);
+        if (selectedOption === 'tong_chi') {
+          await displayTotalExpenses(selectedMonth, contentDiv);
+        } else if (selectedOption === 'tinh_toan') {
+          await displayExpenseCalculation(selectedMonth, contentDiv);
         } else {
-          await displayIndividualRoom(selectedValue, spreadsheetData, contentDiv);
+          await displayIndividualRoom(selectedOption, selectedMonth, contentDiv);
         }
-
       } catch (error) {
-        console.error('Lỗi khi tải dữ liệu từ Google Sheets:', error);
-        contentDiv.innerHTML = `<div class="room-detail"><p style="text-align: center; color: red;">Đã xảy ra lỗi: ${error.message}</p></div>`;
+         console.error('Lỗi khi tải dữ liệu chi tiết:', error);
+         contentDiv.innerHTML = `<div class="room-detail"><p style="text-align: center; color: red;">Đã xảy ra lỗi: ${error.message}</p></div>`;
       }
     }
 
-    async function displayIndividualRoom(selectedRoomName, spreadsheetData, contentDiv) {
-      const dateSheets = spreadsheetData.sheets
-        .map(sheet => {
-          const title = sheet.properties.title;
-          const match = title.match(/Phòng Trọ Tháng (\d{1,2})\s*\/\s*(\d{4})/);
-          if (match) {
-            return { title: title, date: new Date(parseInt(match[2]), parseInt(match[1]) - 1, 1) };
-          }
-          return null;
-        })
-        .filter(sheet => sheet !== null)
-        .sort((a, b) => b.date - a.date);
-
-      if (dateSheets.length === 0) {
-        throw new Error('Không tìm thấy trang tính nào có định dạng "Phòng Trọ Tháng...".');
-      }
-
-      const latestSheetName = dateSheets[0].title;
-      const range = `${latestSheetName}!A:N`;
+    async function displayIndividualRoom(selectedRoomName, selectedMonth, contentDiv) {
+      const sheetName = `Phòng Trọ Tháng ${selectedMonth}`;
+      const range = `${sheetName}!A:N`;
       const dataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?key=${API_KEY}`;
-
       const dataResponse = await fetch(dataUrl);
-      if (!dataResponse.ok) throw new Error(`Không thể tải dữ liệu từ trang tính "${latestSheetName}".`);
+      if (!dataResponse.ok) throw new Error(`Không thể tải dữ liệu phòng cho Tháng ${selectedMonth}. Trang tính có thể không tồn tại.`);
+      
       const data = await dataResponse.json();
       const rows = data.values;
-
-      if (!rows || rows.length < 2) throw new Error(`Không có dữ liệu trong trang tính "${latestSheetName}".`);
+      if (!rows || rows.length < 2) throw new Error(`Không có dữ liệu trong trang tính "${sheetName}".`);
 
       const roomRow = rows.find(row => row[1] === selectedRoomName);
-
       if (roomRow) {
         const ghiChuRaw = roomRow[4] || '';
         let tienWifi = 0;
         let phiMayLanh = 0;
-
-        if (ghiChuRaw.includes('Có Wifi') || ghiChuRaw.includes('Có WiFi')) {
-          tienWifi = 25000;
-        }
-        if (ghiChuRaw.includes('Có máy lạnh')) {
-          phiMayLanh = 300000;
-        }
+        if (ghiChuRaw.includes('Có Wifi') || ghiChuRaw.includes('Có WiFi')) tienWifi = 25000;
+        if (ghiChuRaw.includes('Có máy lạnh')) phiMayLanh = 300000;
 
         const roomDetails = {
           tenPhong: roomRow[1], tienPhong: roomRow[3], soDienMoi: roomRow[5],
@@ -856,152 +872,82 @@
           tienCoc: roomRow[9], khac: roomRow[10], tienDien: roomRow[11],
           tienNuoc: roomRow[12], tongCong: roomRow[13], tienWifi, phiMayLanh
         };
-        
-        const monthText = latestSheetName.replace('Phòng Trọ ', '');
 
         let detailHtml = `
-            <div class="room-detail">
-                <h3 style="text-align: center;">🏠 Chi Tiết ${roomDetails.tenPhong || 'N/A'}</h3>
-                <p style="text-align: center; margin-top: -10px; margin-bottom: 20px; color: #555; font-style: italic;">(Dữ liệu ${monthText})</p>
-                <div class="detail-item"><span>Tiền phòng</span><span>${parseAndFormatCurrency(roomDetails.tienPhong)}</span></div>
-                <div class="detail-item"><span>Tiền cọc</span><span>${parseAndFormatCurrency(roomDetails.tienCoc)}</span></div>
-                <div class="detail-item"><span>Số điện cũ</span><span>${roomDetails.soDienCu || 0}</span></div>
-                <div class="detail-item"><span>Số điện mới</span><span>${roomDetails.soDienMoi || 0}</span></div>
-                <div class="detail-item"><span>Tiền điện</span><span>${parseAndFormatCurrency(roomDetails.tienDien)}</span></div>
-                <div class="detail-item"><span>Số nước cũ</span><span>${roomDetails.soNuocCu || 0}</span></div>
-                <div class="detail-item"><span>Số nước mới</span><span>${roomDetails.soNuocMoi || 0}</span></div>
-                <div class="detail-item"><span>Tiền nước</span><span>${parseAndFormatCurrency(roomDetails.tienNuoc)}</span></div>
+          <div class="room-detail">
+              <h3 style="text-align: center;">🏠 Chi Tiết ${roomDetails.tenPhong || 'N/A'}</h3>
+              <p style="text-align: center; margin-top: -10px; margin-bottom: 20px; color: #555; font-style: italic;">(Dữ liệu Tháng ${selectedMonth})</p>
+              <div class="detail-item"><span>Tiền phòng</span><span>${parseAndFormatCurrency(roomDetails.tienPhong)}</span></div>
+              <div class="detail-item"><span>Tiền cọc</span><span>${parseAndFormatCurrency(roomDetails.tienCoc)}</span></div>
+              <div class="detail-item"><span>Số điện cũ</span><span>${roomDetails.soDienCu || 0}</span></div>
+              <div class="detail-item"><span>Số điện mới</span><span>${roomDetails.soDienMoi || 0}</span></div>
+              <div class="detail-item"><span>Tiền điện</span><span>${parseAndFormatCurrency(roomDetails.tienDien)}</span></div>
+              <div class="detail-item"><span>Số nước cũ</span><span>${roomDetails.soNuocCu || 0}</span></div>
+              <div class="detail-item"><span>Số nước mới</span><span>${roomDetails.soNuocMoi || 0}</span></div>
+              <div class="detail-item"><span>Tiền nước</span><span>${parseAndFormatCurrency(roomDetails.tienNuoc)}</span></div>
         `;
-
         if (roomDetails.tienWifi > 0) detailHtml += `<div class="detail-item"><span>Tiền WiFi</span><span>${parseAndFormatCurrency(roomDetails.tienWifi)}</span></div>`;
         if (roomDetails.phiMayLanh > 0) detailHtml += `<div class="detail-item"><span>Phí máy lạnh</span><span>${parseAndFormatCurrency(roomDetails.phiMayLanh)}</span></div>`;
         if (roomDetails.khac) detailHtml += `<div class="detail-item"><span>Khác</span><span>${roomDetails.khac}</span></div>`;
-
         detailHtml += `<div class="detail-item total"><span><strong>Tổng cộng</strong></span><span><strong>${parseAndFormatCurrency(roomDetails.tongCong)}</strong></span></div></div>`;
         contentDiv.innerHTML = detailHtml;
       } else {
-        contentDiv.innerHTML = `<div class="room-detail"><p style="text-align: center;">Không tìm thấy dữ liệu cho "${selectedRoomName}" trong tháng này.</p></div>`;
+        contentDiv.innerHTML = `<div class="room-detail"><p style="text-align: center;">Không tìm thấy dữ liệu cho "${selectedRoomName}" trong Tháng ${selectedMonth}.</p></div>`;
       }
     }
 
-    async function displayTotalExpenses(spreadsheetData, contentDiv) {
-      const dateSheets = spreadsheetData.sheets
-        .map(sheet => {
-          const title = sheet.properties.title;
-          const match = title.match(/Chi tiêu Tháng (\d{1,2})\s*\/\s*(\d{4})/);
-          if (match) {
-            return { title: title, date: new Date(parseInt(match[2]), parseInt(match[1]) - 1, 1) };
-          }
-          return null;
-        })
-        .filter(sheet => sheet !== null)
-        .sort((a, b) => b.date - a.date);
-
-      if (dateSheets.length === 0) {
-        throw new Error('Không tìm thấy trang tính nào có định dạng "Chi tiêu Tháng...".');
-      }
-
-      const latestSheetName = dateSheets[0].title;
-      const range = `${latestSheetName}!A:H`;
+    async function displayTotalExpenses(selectedMonth, contentDiv) {
+      const sheetName = `Chi tiêu Tháng ${selectedMonth}`;
+      const range = `${sheetName}!A:H`;
       const dataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?key=${API_KEY}`;
-
       const dataResponse = await fetch(dataUrl);
-      if (!dataResponse.ok) throw new Error(`Không thể tải dữ liệu từ trang tính "${latestSheetName}".`);
+      if (!dataResponse.ok) throw new Error(`Không thể tải dữ liệu chi tiêu cho Tháng ${selectedMonth}. Trang tính có thể không tồn tại.`);
+
       const data = await dataResponse.json();
       const rows = data.values;
-
-      if (!rows || rows.length < 2) throw new Error(`Không có dữ liệu trong trang tính "${latestSheetName}".`);
+      if (!rows || rows.length < 2) throw new Error(`Không có dữ liệu trong trang tính "${sheetName}".`);
 
       const headers = rows[0];
       const dataRow = rows[1];
-
-      let detailHtml = `<div class="room-detail"><h3>📊 ${latestSheetName}</h3>`;
+      let detailHtml = `<div class="room-detail"><h3>📊 ${sheetName}</h3>`;
 
       for (let j = 1; j < headers.length; j++) {
         const header = headers[j];
         const value = dataRow[j] || '0';
-
         if (header) {
           const isTotal = header.toLowerCase().includes('tổng cộng');
           const isKhac = header.toLowerCase().includes('khác');
-
-          let formattedValue;
-          if (isKhac) {
-            formattedValue = value;
-          } else {
-            formattedValue = parseAndFormatCurrency(value);
-          }
-
+          const formattedValue = isKhac ? value : parseAndFormatCurrency(value);
           detailHtml += `<div class="detail-item ${isTotal ? 'total' : ''}">`;
           detailHtml += `<span>${isTotal ? '<strong>' + header + '</strong>' : header}</span>`;
           detailHtml += `<span>${isTotal ? '<strong>' + formattedValue + '</strong>' : formattedValue}</span>`;
           detailHtml += `</div>`;
         }
       }
-
       detailHtml += `</div>`;
       contentDiv.innerHTML = detailHtml;
     }
 
-    async function displayExpenseCalculation(spreadsheetData, contentDiv) {
-      // Logic để tìm tháng mới nhất mà cả 2 sheet đều có
-      const roomSheets = new Map();
-      const expenseSheets = new Map();
-
-      spreadsheetData.sheets.forEach(sheet => {
-        const title = sheet.properties.title;
-        let match = title.match(/Phòng Trọ Tháng (\d{1,2})\s*\/\s*(\d{4})/);
-        if (match) {
-          const key = `${match[1]}/${match[2]}`;
-          roomSheets.set(key, title);
-          return;
-        }
-        match = title.match(/Chi tiêu Tháng (\d{1,2})\s*\/\s*(\d{4})/);
-        if (match) {
-          const key = `${match[1]}/${match[2]}`;
-          expenseSheets.set(key, title);
-        }
-      });
-
-      let latestMatchingMonthKey = null;
-      const sortedRoomKeys = Array.from(roomSheets.keys()).sort((a, b) => {
-        const [m1, y1] = a.split('/').map(Number);
-        const [m2, y2] = b.split('/').map(Number);
-        return new Date(y2, m2 - 1) - new Date(y1, m1 - 1);
-      });
-
-      for (const key of sortedRoomKeys) {
-        if (expenseSheets.has(key)) {
-          latestMatchingMonthKey = key;
-          break;
-        }
-      }
-
-      if (!latestMatchingMonthKey) {
-        throw new Error("Không tìm thấy tháng nào có đủ cả hai trang tính 'Phòng Trọ' và 'Chi tiêu'.");
-      }
-
-      const roomSheetName = roomSheets.get(latestMatchingMonthKey);
-      const expenseSheetName = expenseSheets.get(latestMatchingMonthKey);
-
-      // Fetch cả 2 sheet
+    async function displayExpenseCalculation(selectedMonth, contentDiv) {
+      const roomSheetName = `Phòng Trọ Tháng ${selectedMonth}`;
+      const expenseSheetName = `Chi tiêu Tháng ${selectedMonth}`;
+      
       const roomDataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(roomSheetName + '!A:N')}?key=${API_KEY}`;
       const expenseDataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(expenseSheetName + '!A:H')}?key=${API_KEY}`;
 
       const [roomResponse, expenseResponse] = await Promise.all([fetch(roomDataUrl), fetch(expenseDataUrl)]);
-
-      if (!roomResponse.ok || !expenseResponse.ok) throw new Error("Lỗi khi tải dữ liệu từ một trong các trang tính.");
+      if (!roomResponse.ok) throw new Error(`Không thể tải dữ liệu Phòng Trọ cho Tháng ${selectedMonth}.`);
+      if (!expenseResponse.ok) throw new Error(`Không thể tải dữ liệu Chi Tiêu cho Tháng ${selectedMonth}.`);
 
       const roomData = await roomResponse.json();
       const expenseData = await expenseResponse.json();
 
-      // Xử lý dữ liệu phòng
       let totalRevenue = 0;
       let roomHtml = '';
       if (roomData.values && roomData.values.length > 1) {
         for (let i = 1; i < roomData.values.length; i++) {
           const row = roomData.values[i];
-          if (row[1] && row[13]) { // Nếu có tên phòng và tổng tiền
+          if (row[1] && row[13]) {
             const roomName = row[1];
             const roomTotal = parseFloat(String(row[13]).replace(/[^0-9-]/g, '')) || 0;
             totalRevenue += roomTotal;
@@ -1010,70 +956,59 @@
         }
       }
 
-      // Xử lý dữ liệu chi tiêu
       let totalExpense = 0;
       if (expenseData.values && expenseData.values.length > 1) {
         const expenseRow = expenseData.values[1];
-        totalExpense = parseFloat(String(expenseRow[7]).replace(/[^0-9-]/g, '')) || 0; // Cột H
+        totalExpense = parseFloat(String(expenseRow[7]).replace(/[^0-9-]/g, '')) || 0;
       }
 
       const finalBalance = totalRevenue - totalExpense;
 
-      // Hiển thị kết quả
       const detailHtml = `
-                <div class="room-detail">
-                    <h3>📊 Bảng tính toán chi tiêu Tháng ${latestMatchingMonthKey}</h3>
-                    ${roomHtml}
-                    <hr style="margin: 10px 0; border: none; border-top: 1px dashed #ccc;">
-                    <div class="detail-item">
-                        <span>Tổng chi tiêu Tháng ${latestMatchingMonthKey}</span>
-                        <span>- ${parseAndFormatCurrency(totalExpense)}</span>
-                    </div>
-                     <div class="detail-item total">
-                        <span><strong>Tổng còn lại</strong></span>
-                        <span><strong>${parseAndFormatCurrency(finalBalance)}</strong></span>
-                    </div>
-                </div>
-            `;
+        <div class="room-detail">
+            <h3>📊 Bảng tính toán chi tiêu Tháng ${selectedMonth}</h3>
+            ${roomHtml}
+            <hr style="margin: 10px 0; border: none; border-top: 1px dashed #ccc;">
+            <div class="detail-item">
+                <span>Tổng chi tiêu Tháng ${selectedMonth}</span>
+                <span>- ${parseAndFormatCurrency(totalExpense)}</span>
+            </div>
+             <div class="detail-item total">
+                <span><strong>Tổng còn lại</strong></span>
+                <span><strong>${parseAndFormatCurrency(finalBalance)}</strong></span>
+            </div>
+        </div>
+      `;
       contentDiv.innerHTML = detailHtml;
     }
 
     // --- EVENT LISTENERS ---
     document.addEventListener('DOMContentLoaded', function () {
-      // Listener for the "Phòng Trọ" form submission
+      // Listener for form submissions
       document.getElementById('googleForm').addEventListener('submit', function (e) {
-        const khacFieldsContainer = document.getElementById('khacFields');
-        const dynamicFields = khacFieldsContainer.querySelectorAll('.dynamic-field');
-        let khacDataString = '';
-
-        dynamicFields.forEach(field => {
+        const container = document.getElementById('khacFields');
+        const hiddenInput = document.getElementById('khacHiddenInput');
+        let dataString = '';
+        container.querySelectorAll('.dynamic-field').forEach(field => {
           const ten = field.querySelector('input[type="text"]').value.trim();
           const tien = field.querySelector('input[type="number"]').value;
-          if (ten && tien) {
-            khacDataString += `${ten}: ${parseAndFormatCurrency(tien)}\n`;
-          }
+          if (ten && tien) dataString += `${ten}: ${parseAndFormatCurrency(tien)}\n`;
         });
-
-        document.getElementById('khacHiddenInput').value = khacDataString.trim();
+        hiddenInput.value = dataString.trim();
         formSubmitted = true;
         submittedFormId = 'googleForm';
       });
 
-      // Listener for the "Chi Tiêu" form submission
       document.getElementById('chiTieuForm').addEventListener('submit', function (e) {
-        const khacFieldsContainer = document.getElementById('khacFieldsChiTieu');
-        const dynamicFields = khacFieldsContainer.querySelectorAll('.dynamic-field');
-        let khacDataString = '';
-
-        dynamicFields.forEach(field => {
+        const container = document.getElementById('khacFieldsChiTieu');
+        const hiddenInput = document.getElementById('khacHiddenInputChiTieu');
+        let dataString = '';
+        container.querySelectorAll('.dynamic-field').forEach(field => {
           const ten = field.querySelector('input[type="text"]').value.trim();
           const tien = field.querySelector('input[type="number"]').value;
-          if (ten && tien) {
-            khacDataString += `${ten}: ${parseAndFormatCurrency(tien)}\n`;
-          }
+          if (ten && tien) dataString += `${ten}: ${parseAndFormatCurrency(tien)}\n`;
         });
-
-        document.getElementById('khacHiddenInputChiTieu').value = khacDataString.trim();
+        hiddenInput.value = dataString.trim();
         formSubmitted = true;
         submittedFormId = 'chiTieuForm';
       });
@@ -1083,9 +1018,7 @@
 
       // Listener to close modal on overlay click
       document.getElementById('successModalOverlay').addEventListener('click', function (e) {
-        if (e.target === this) {
-          hideSuccessModal();
-        }
+        if (e.target === this) hideSuccessModal();
       });
     });
 
