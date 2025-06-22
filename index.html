@@ -119,10 +119,10 @@
       -moz-appearance: none;
       appearance: none;
     }
-    
+
     .form-select:disabled {
-        background-color: #f8f9fa;
-        cursor: not-allowed;
+      background-color: #f8f9fa;
+      cursor: not-allowed;
     }
 
     .form-input:focus,
@@ -223,7 +223,6 @@
       font-size: 16px;
       transition: all .3s ease;
       line-height: 30px;
-      /* Aligns the '✕' vertically */
     }
 
     .remove-btn:hover {
@@ -255,18 +254,48 @@
       transform: translateY(-1px)
     }
 
+    .print-btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .3s ease;
+      margin-top: 15px;
+      box-shadow: 0 10px 20px rgba(0, 123, 255, .2);
+    }
+
+    .print-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 30px rgba(0, 123, 255, .3);
+    }
+
     .room-detail {
-      background: rgba(102, 126, 234, .05);
+      background: rgba(255, 255, 255, 1);
       border-radius: 15px;
       padding: 20px;
       margin-bottom: 20px;
       border: 1px solid #e1e8ed
     }
 
-    .room-detail h3 {
-      color: #667eea;
-      margin-bottom: 15px;
-      font-size: 1.3em
+    .invoice-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .invoice-header h2 {
+      margin: 0;
+      font-size: 1.8em;
+      color: #333;
+    }
+
+    .invoice-header p {
+      margin: 5px 0 0;
+      color: #555;
     }
 
     .detail-item {
@@ -299,6 +328,30 @@
     .detail-item.total {
       padding-top: 15px;
       border-bottom: none !important;
+    }
+
+    .payment-info {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 2px dashed #ccc;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .payment-info .qr-code {
+      flex-shrink: 0;
+    }
+
+    .payment-info .qr-code img {
+      width: 160px;
+      height: 160px;
+      display: block;
+    }
+
+    .payment-info .bank-details p {
+      margin: 0 0 5px 0;
+      font-size: 0.9em;
     }
 
     .hidden {
@@ -443,6 +496,59 @@
         font-size: 1.8em;
       }
     }
+
+    /* PRINT STYLES */
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+      }
+
+      .container {
+        box-shadow: none;
+        max-width: 100%;
+        width: 100%;
+        border-radius: 0;
+        padding: 0;
+        margin: 0;
+        background: none;
+        backdrop-filter: none;
+      }
+
+      .header,
+      .mode-selector,
+      .form-group,
+      .print-btn,
+      .submit-btn,
+      .success-modal-overlay {
+        display: none !important;
+      }
+
+      .form-container {
+        padding: 0;
+      }
+
+      #roomDetailContent {
+        display: block;
+      }
+
+      .room-detail {
+        border: 1px solid #ccc;
+        box-shadow: none;
+        padding: 10mm;
+        margin: 0 auto;
+        max-width: 180mm;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      @page {
+        size: A5;
+        /* Changed from A4 to A5 */
+        margin: 15mm;
+        /* Adjusted margin for A5 */
+      }
+    }
   </style>
 </head>
 
@@ -506,13 +612,13 @@
             <label class="form-label">⚡ Số Điện</label>
             <input type="number" class="form-input" id="soDien" name="entry.766289465" placeholder="Nhập số điện"
               min="0">
-            <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">(Điện 3.500/kWh)</small>
+            <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">(Điện 3500/kWh)</small>
           </div>
           <div class="form-group">
             <label class="form-label">💧 Số Nước</label>
             <input type="number" class="form-input" id="soNuoc" name="entry.611811966" placeholder="Nhập số nước"
               min="0">
-            <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">(Nước 12.000/khối)</small>
+            <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">(Nước 12000/khối)</small>
           </div>
         </div>
         <div class="form-group">
@@ -592,15 +698,12 @@
 
       <!-- Div Chi Tiết Nhà Trọ -->
       <div id="chiTietForm" class="form-mode hidden">
-        <!-- NEW MONTH/YEAR SELECTOR -->
         <div class="form-group">
-            <label class="form-label">📅 Chọn Tháng/Năm</label>
-            <select class="form-select" id="monthYearSelect" onchange="handleMonthSelection()">
-                <option value="">-- Vui lòng chờ, đang tải tháng --</option>
-            </select>
+          <label class="form-label">📅 Chọn Tháng/Năm</label>
+          <select class="form-select" id="monthYearSelect" onchange="handleMonthSelection()">
+            <option value="">-- Vui lòng chờ, đang tải tháng --</option>
+          </select>
         </div>
-
-        <!-- EXISTING ROOM/OPTION SELECTOR -->
         <div class="form-group">
           <label class="form-label">📋 Chọn Xem Chi Tiết</label>
           <select class="form-select" id="phongChiTiet" onchange="loadRoomDetail()" disabled>
@@ -628,6 +731,9 @@
         </div>
         <div id="roomDetailContent">
           <!-- Nội dung chi tiết phòng sẽ được tải vào đây -->
+        </div>
+        <div id="printButtonContainer">
+          <!-- Nút in sẽ được thêm vào đây bằng JavaScript -->
         </div>
       </div>
     </div>
@@ -677,10 +783,9 @@
       } else if (mode === 'chi-tiet') {
         chiTietForm.classList.remove('hidden');
         buttons[2].classList.add('active');
-        // Populate the selector if it hasn't been populated yet
         const monthSelect = document.getElementById('monthYearSelect');
-        if (monthSelect.options.length <= 1) { // Only has the initial placeholder
-            populateMonthYearSelector();
+        if (monthSelect.options.length <= 1) {
+          populateMonthYearSelector();
         }
       }
     }
@@ -741,82 +846,85 @@
       document.getElementById('successModalOverlay').classList.remove('visible');
     }
 
-    // --- GOOGLE SHEETS DATA FETCHING ---
+    // --- GOOGLE SHEETS DATA FETCHING & PRINTING ---
 
     async function populateMonthYearSelector() {
-        const monthSelect = document.getElementById('monthYearSelect');
-        const roomSelect = document.getElementById('phongChiTiet');
-        
-        monthSelect.innerHTML = '<option value="">-- Đang tải danh sách tháng --</option>';
-        monthSelect.disabled = true;
+      const monthSelect = document.getElementById('monthYearSelect');
+      const roomSelect = document.getElementById('phongChiTiet');
+
+      monthSelect.innerHTML = '<option value="">-- Đang tải danh sách tháng --</option>';
+      monthSelect.disabled = true;
+      roomSelect.disabled = true;
+      roomSelect.value = '';
+
+      if (!API_KEY || API_KEY === 'YOUR_GOOGLE_API_KEY') {
+        monthSelect.innerHTML = '<option value="">Lỗi: API Key không hợp lệ</option>';
+        return;
+      }
+
+      try {
+        const metadataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?fields=sheets.properties.title&key=${API_KEY}`;
+        const metadataResponse = await fetch(metadataUrl);
+        if (!metadataResponse.ok) throw new Error('Không thể lấy danh sách trang tính.');
+
+        const spreadsheetData = await metadataResponse.json();
+        const allMonths = new Set();
+        const monthRegex = /(\d{1,2})\s*\/\s*(\d{4})/;
+
+        spreadsheetData.sheets.forEach(sheet => {
+          const title = sheet.properties.title;
+          const match = title.match(monthRegex);
+          if (match) {
+            const month = parseInt(match[1]);
+            const year = parseInt(match[2]);
+            allMonths.add(`${month}/${year}`);
+          }
+        });
+
+        const sortedMonths = Array.from(allMonths).sort((a, b) => {
+          const [m1, y1] = a.split('/').map(Number);
+          const [m2, y2] = b.split('/').map(Number);
+          return new Date(y2, m2 - 1) - new Date(y1, m1 - 1);
+        });
+
+        if (sortedMonths.length === 0) {
+          monthSelect.innerHTML = '<option value="">-- Không tìm thấy tháng --</option>';
+          return;
+        }
+
+        monthSelect.innerHTML = '<option value="">-- Chọn tháng/năm --</option>';
+        sortedMonths.forEach(monthYear => {
+          const option = document.createElement('option');
+          option.value = monthYear;
+          option.textContent = `Tháng ${monthYear}`;
+          monthSelect.appendChild(option);
+        });
+
+        monthSelect.disabled = false;
+
+      } catch (error) {
+        console.error('Lỗi khi tải danh sách tháng:', error);
+        monthSelect.innerHTML = `<option value="">Lỗi: ${error.message}</option>`;
+      }
+    }
+
+    function handleMonthSelection() {
+      const monthSelect = document.getElementById('monthYearSelect');
+      const roomSelect = document.getElementById('phongChiTiet');
+      const contentDiv = document.getElementById('roomDetailContent');
+      const printBtnContainer = document.getElementById('printButtonContainer');
+
+      if (monthSelect.value) {
+        roomSelect.disabled = false;
+        roomSelect.value = '';
+        contentDiv.innerHTML = '';
+        printBtnContainer.innerHTML = '';
+      } else {
         roomSelect.disabled = true;
         roomSelect.value = '';
-
-        if (!API_KEY || API_KEY === 'YOUR_GOOGLE_API_KEY') {
-            monthSelect.innerHTML = '<option value="">Lỗi: API Key không hợp lệ</option>';
-            return;
-        }
-
-        try {
-            const metadataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?fields=sheets.properties.title&key=${API_KEY}`;
-            const metadataResponse = await fetch(metadataUrl);
-            if (!metadataResponse.ok) throw new Error('Không thể lấy danh sách trang tính.');
-            
-            const spreadsheetData = await metadataResponse.json();
-            const allMonths = new Set();
-            const monthRegex = /(\d{1,2})\s*\/\s*(\d{4})/;
-
-            spreadsheetData.sheets.forEach(sheet => {
-                const title = sheet.properties.title;
-                const match = title.match(monthRegex);
-                if (match) {
-                    const month = parseInt(match[1]);
-                    const year = parseInt(match[2]);
-                    allMonths.add(`${month}/${year}`);
-                }
-            });
-            
-            const sortedMonths = Array.from(allMonths).sort((a, b) => {
-                const [m1, y1] = a.split('/').map(Number);
-                const [m2, y2] = b.split('/').map(Number);
-                return new Date(y2, m2 - 1) - new Date(y1, m1 - 1);
-            });
-
-            if (sortedMonths.length === 0) {
-                monthSelect.innerHTML = '<option value="">-- Không tìm thấy tháng --</option>';
-                return;
-            }
-
-            monthSelect.innerHTML = '<option value="">-- Chọn tháng/năm --</option>';
-            sortedMonths.forEach(monthYear => {
-                const option = document.createElement('option');
-                option.value = monthYear;
-                option.textContent = `Tháng ${monthYear}`;
-                monthSelect.appendChild(option);
-            });
-
-            monthSelect.disabled = false;
-
-        } catch (error) {
-            console.error('Lỗi khi tải danh sách tháng:', error);
-            monthSelect.innerHTML = `<option value="">Lỗi: ${error.message}</option>`;
-        }
-    }
-    
-    function handleMonthSelection() {
-        const monthSelect = document.getElementById('monthYearSelect');
-        const roomSelect = document.getElementById('phongChiTiet');
-        const contentDiv = document.getElementById('roomDetailContent');
-
-        if (monthSelect.value) {
-            roomSelect.disabled = false;
-            roomSelect.value = ''; // Reset selection
-            contentDiv.innerHTML = ''; // Clear previous details
-        } else {
-            roomSelect.disabled = true;
-            roomSelect.value = '';
-            contentDiv.innerHTML = '';
-        }
+        contentDiv.innerHTML = '';
+        printBtnContainer.innerHTML = '';
+      }
     }
 
     async function loadRoomDetail() {
@@ -825,9 +933,13 @@
       const selectedMonth = monthSelect.value;
       const selectedOption = roomSelect.value;
       const contentDiv = document.getElementById('roomDetailContent');
+      const printBtnContainer = document.getElementById('printButtonContainer');
+
+      contentDiv.innerHTML = '';
+      printBtnContainer.innerHTML = '';
+
 
       if (!selectedMonth || !selectedOption) {
-        contentDiv.innerHTML = '';
         return;
       }
 
@@ -840,10 +952,11 @@
           await displayExpenseCalculation(selectedMonth, contentDiv);
         } else {
           await displayIndividualRoom(selectedOption, selectedMonth, contentDiv);
+          printBtnContainer.innerHTML = `<button class="print-btn" onclick="window.print()">🖨️ In Hóa Đơn</button>`;
         }
       } catch (error) {
-         console.error('Lỗi khi tải dữ liệu chi tiết:', error);
-         contentDiv.innerHTML = `<div class="room-detail"><p style="text-align: center; color: red;">Đã xảy ra lỗi: ${error.message}</p></div>`;
+        console.error('Lỗi khi tải dữ liệu chi tiết:', error);
+        contentDiv.innerHTML = `<div class="room-detail"><p style="text-align: center; color: red;">Đã xảy ra lỗi: ${error.message}</p></div>`;
       }
     }
 
@@ -853,7 +966,7 @@
       const dataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?key=${API_KEY}`;
       const dataResponse = await fetch(dataUrl);
       if (!dataResponse.ok) throw new Error(`Không thể tải dữ liệu phòng cho Tháng ${selectedMonth}. Trang tính có thể không tồn tại.`);
-      
+
       const data = await dataResponse.json();
       const rows = data.values;
       if (!rows || rows.length < 2) throw new Error(`Không có dữ liệu trong trang tính "${sheetName}".`);
@@ -873,10 +986,21 @@
           tienNuoc: roomRow[12], tongCong: roomRow[13], tienWifi, phiMayLanh
         };
 
+        // --- TẠO QR CODE ---
+        const numericAmount = String(roomDetails.tongCong).replace(/[^0-9]/g, '');
+        const roomNumber = selectedRoomName.replace(/\D/g, ''); // Lấy số phòng
+        const description = `Tien tro thang ${selectedMonth.replace('/', '')} phong tro ${roomNumber}`;
+        const qrApiUrl = `https://api.vietqr.io/image/970436-tranquochuy2000-print.png?amount=${numericAmount}&addInfo=${encodeURIComponent(description)}&accountName=TRAN%20QUOC%20HUY`;
+
+
         let detailHtml = `
           <div class="room-detail">
-              <h3 style="text-align: center;">🏠 Chi Tiết ${roomDetails.tenPhong || 'N/A'}</h3>
-              <p style="text-align: center; margin-top: -10px; margin-bottom: 20px; color: #555; font-style: italic;">(Dữ liệu Tháng ${selectedMonth})</p>
+              <div class="invoice-header">
+                <p style="font-weight: bold; color: #333; margin-bottom: 4px;">Nhà Trọ Dạ Thảo</p>
+                <h2 style="margin-top:0;">HÓA ĐƠN TIỀN TRỌ</h2>
+                <p>Tháng ${selectedMonth}</p>
+              </div>
+              <div class="detail-item"><span>Phòng</span><span><strong>${roomDetails.tenPhong || 'N/A'}</strong></span></div>
               <div class="detail-item"><span>Tiền phòng</span><span>${parseAndFormatCurrency(roomDetails.tienPhong)}</span></div>
               <div class="detail-item"><span>Tiền cọc</span><span>${parseAndFormatCurrency(roomDetails.tienCoc)}</span></div>
               <div class="detail-item"><span>Số điện cũ</span><span>${roomDetails.soDienCu || 0}</span></div>
@@ -889,7 +1013,24 @@
         if (roomDetails.tienWifi > 0) detailHtml += `<div class="detail-item"><span>Tiền WiFi</span><span>${parseAndFormatCurrency(roomDetails.tienWifi)}</span></div>`;
         if (roomDetails.phiMayLanh > 0) detailHtml += `<div class="detail-item"><span>Phí máy lạnh</span><span>${parseAndFormatCurrency(roomDetails.phiMayLanh)}</span></div>`;
         if (roomDetails.khac) detailHtml += `<div class="detail-item"><span>Khác</span><span>${roomDetails.khac}</span></div>`;
-        detailHtml += `<div class="detail-item total"><span><strong>Tổng cộng</strong></span><span><strong>${parseAndFormatCurrency(roomDetails.tongCong)}</strong></span></div></div>`;
+        detailHtml += `<div class="detail-item total"><span><strong>TỔNG CỘNG</strong></span><span><strong>${parseAndFormatCurrency(roomDetails.tongCong)}</strong></span></div>`;
+
+        // Thêm phần thông tin thanh toán và QR Code
+        detailHtml += `
+            <div class="payment-info">
+                <div class="qr-code">
+                    <img src="${qrApiUrl}" alt="Mã QR Thanh toán">
+                </div>
+                <div class="bank-details">
+                    <p><strong>Ngân hàng:</strong> VCB (TMCP Ngoại thương Việt Nam)</p>
+                    <p><strong>Chủ tài khoản:</strong> TRAN QUOC HUY</p>
+                    <p><strong>Số tài khoản:</strong> tranquochuy2000</p>
+                    <p><strong>Nội dung:</strong> ${description}</p>
+                </div>
+            </div>
+        `;
+
+        detailHtml += `</div>`; // Đóng .room-detail
         contentDiv.innerHTML = detailHtml;
       } else {
         contentDiv.innerHTML = `<div class="room-detail"><p style="text-align: center;">Không tìm thấy dữ liệu cho "${selectedRoomName}" trong Tháng ${selectedMonth}.</p></div>`;
@@ -931,7 +1072,7 @@
     async function displayExpenseCalculation(selectedMonth, contentDiv) {
       const roomSheetName = `Phòng Trọ Tháng ${selectedMonth}`;
       const expenseSheetName = `Chi tiêu Tháng ${selectedMonth}`;
-      
+
       const roomDataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(roomSheetName + '!A:N')}?key=${API_KEY}`;
       const expenseDataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(expenseSheetName + '!A:H')}?key=${API_KEY}`;
 
