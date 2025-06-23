@@ -944,8 +944,10 @@
       try {
         if (selectedOption === 'tong_chi') {
           await displayTotalExpenses(selectedMonth, contentDiv);
+          printBtnContainer.innerHTML = `<button class="print-btn" onclick="window.print()">🖨️ In Báo Cáo</button>`;
         } else if (selectedOption === 'tinh_toan') {
           await displayExpenseCalculation(selectedMonth, contentDiv);
+           printBtnContainer.innerHTML = `<button class="print-btn" onclick="window.print()">🖨️ In Báo Cáo</button>`;
         } else {
           await displayIndividualRoom(selectedOption, selectedMonth, contentDiv);
           printBtnContainer.innerHTML = `<button class="print-btn" onclick="window.print()">🖨️ In Hóa Đơn</button>`;
