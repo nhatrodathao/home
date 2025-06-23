@@ -338,6 +338,7 @@
       border-bottom: none !important;
     }
     
+    /*
     .payment-info {
         margin-top: 30px;
         padding-top: 20px;
@@ -361,6 +362,7 @@
         margin: 0 0 5px 0;
         font-size: 0.9em;
     }
+    */
 
     .hidden {
       display: none;
@@ -538,6 +540,9 @@
             max-width: 180mm;
             -webkit-print-color-adjust: exact; 
             print-color-adjust: exact;
+        }
+        .payment-info {
+            display: none; /* Hide QR code section on print */
         }
         @page {
             size: A5; /* Changed from A4 to A5 */
@@ -750,7 +755,7 @@
   <script>
     // --- CONFIGURATION ---
     const SPREADSHEET_ID = '1w-6GXmvM0rtvRo7qTseYXnzovWEAT3BLASLKyTLlJk8';
-    const API_KEY = 'AIzaSyAkEjsZErHu1D29da2QxfyyPV3Ms46y6aE'; // THAY API KEY CỦA BẠN VÀO ĐÂY
+    // const API_KEY = 'YOUR_GOOGLE_API_KEY'; // API Key được giữ kín, không hiển thị ở đây
 
     // --- STATE & COUNTERS ---
     let khacCounter = 0;
@@ -844,6 +849,20 @@
 
     // --- GOOGLE SHEETS DATA FETCHING & PRINTING ---
 
+    async function fetchData(endpoint) {
+        // Đây là nơi bạn sẽ gọi đến backend của mình
+        // Ví dụ: const response = await fetch(`https://your-backend-url.com/${endpoint}`);
+        // Vì hiện tại chưa có backend, ta sẽ giả lập lại việc gọi Google API nhưng không để lộ key
+        // LƯU Ý: Đây chỉ là giải pháp tạm thời, bạn CẦN xây dựng backend để bảo mật API KEY
+        const API_KEY_TEMP = 'AIzaSyAkEjsZErHu1D29da2QxfyyPV3Ms46y6aE'; // Key tạm thời
+        const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}${endpoint}&key=${API_KEY_TEMP}`);
+        if (!response.ok) {
+            throw new Error('Lỗi kết nối đến máy chủ hoặc Google Sheets.');
+        }
+        return response.json();
+    }
+
+
     async function populateMonthYearSelector() {
         const monthSelect = document.getElementById('monthYearSelect');
         const roomSelect = document.getElementById('phongChiTiet');
@@ -853,17 +872,8 @@
         roomSelect.disabled = true;
         roomSelect.value = '';
 
-        if (!API_KEY || API_KEY === 'YOUR_GOOGLE_API_KEY') {
-            monthSelect.innerHTML = '<option value="">Lỗi: API Key không hợp lệ</option>';
-            return;
-        }
-
         try {
-            const metadataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?fields=sheets.properties.title&key=${API_KEY}`;
-            const metadataResponse = await fetch(metadataUrl);
-            if (!metadataResponse.ok) throw new Error('Không thể lấy danh sách trang tính.');
-            
-            const spreadsheetData = await metadataResponse.json();
+            const spreadsheetData = await fetchData('?fields=sheets.properties.title');
             const allMonths = new Set();
             const monthRegex = /(\d{1,2})\s*\/\s*(\d{4})/;
 
@@ -961,14 +971,10 @@
     async function displayIndividualRoom(selectedRoomName, selectedMonth, contentDiv) {
       const sheetName = `Phòng Trọ Tháng ${selectedMonth}`;
       const range = `${sheetName}!A:N`;
-      const dataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?key=${API_KEY}`;
-      const dataResponse = await fetch(dataUrl);
-      if (!dataResponse.ok) throw new Error(`Không thể tải dữ liệu phòng cho Tháng ${selectedMonth}. Trang tính có thể không tồn tại.`);
+      const data = await fetchData(`/values/${encodeURIComponent(range)}?`);
       
-      const data = await dataResponse.json();
+      if (!data.values || data.values.length < 2) throw new Error(`Không có dữ liệu trong trang tính "${sheetName}".`);
       const rows = data.values;
-      if (!rows || rows.length < 2) throw new Error(`Không có dữ liệu trong trang tính "${sheetName}".`);
-
       const roomRow = rows.find(row => row[1] === selectedRoomName);
       if (roomRow) {
         const ghiChuRaw = roomRow[4] || '';
@@ -984,12 +990,13 @@
           tienNuoc: roomRow[12], tongCong: roomRow[13], tienWifi, phiMayLanh
         };
 
+        /*
         // --- TẠO QR CODE ---
         const numericAmount = String(roomDetails.tongCong).replace(/[^0-9]/g, '');
         const roomNumber = selectedRoomName.replace(/\D/g, ''); // Lấy số phòng
         const description = `Tien tro thang ${selectedMonth.replace('/', '')} phong tro ${roomNumber}`;
         const qrApiUrl = `https://api.vietqr.io/image/970436-tranquochuy2000-print.png?amount=${numericAmount}&addInfo=${encodeURIComponent(description)}&accountName=TRAN%20QUOC%20HUY`;
-
+        */
 
         let detailHtml = `
           <div class="room-detail">
@@ -1013,6 +1020,7 @@
         if (roomDetails.khac) detailHtml += `<div class="detail-item"><span>Khác</span><span>${roomDetails.khac}</span></div>`;
         detailHtml += `<div class="detail-item total"><span><strong>TỔNG CỘNG</strong></span><span><strong>${parseAndFormatCurrency(roomDetails.tongCong)}</strong></span></div>`;
         
+        /*
         // Thêm phần thông tin thanh toán và QR Code
         detailHtml += `
             <div class="payment-info">
@@ -1027,6 +1035,7 @@
                 </div>
             </div>
         `;
+        */
 
         detailHtml += `</div>`; // Đóng .room-detail
         contentDiv.innerHTML = detailHtml;
@@ -1038,14 +1047,10 @@
     async function displayTotalExpenses(selectedMonth, contentDiv) {
       const sheetName = `Chi tiêu Tháng ${selectedMonth}`;
       const range = `${sheetName}!A:H`;
-      const dataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?key=${API_KEY}`;
-      const dataResponse = await fetch(dataUrl);
-      if (!dataResponse.ok) throw new Error(`Không thể tải dữ liệu chi tiêu cho Tháng ${selectedMonth}. Trang tính có thể không tồn tại.`);
-
-      const data = await dataResponse.json();
+      const data = await fetchData(`/values/${encodeURIComponent(range)}?`);
+      
+      if (!data.values || data.values.length < 2) throw new Error(`Không có dữ liệu trong trang tính "${sheetName}".`);
       const rows = data.values;
-      if (!rows || rows.length < 2) throw new Error(`Không có dữ liệu trong trang tính "${sheetName}".`);
-
       const headers = rows[0];
       const dataRow = rows[1];
       let detailHtml = `<div class="room-detail"><h3 class="expense-title">📊 ${sheetName}</h3>`;
@@ -1071,16 +1076,11 @@
       const roomSheetName = `Phòng Trọ Tháng ${selectedMonth}`;
       const expenseSheetName = `Chi tiêu Tháng ${selectedMonth}`;
       
-      const roomDataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(roomSheetName + '!A:N')}?key=${API_KEY}`;
-      const expenseDataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(expenseSheetName + '!A:H')}?key=${API_KEY}`;
+      const roomDataUrl = `/values/${encodeURIComponent(roomSheetName + '!A:N')}?`;
+      const expenseDataUrl = `/values/${encodeURIComponent(expenseSheetName + '!A:H')}?`;
 
-      const [roomResponse, expenseResponse] = await Promise.all([fetch(roomDataUrl), fetch(expenseDataUrl)]);
-      if (!roomResponse.ok) throw new Error(`Không thể tải dữ liệu Phòng Trọ cho Tháng ${selectedMonth}.`);
-      if (!expenseResponse.ok) throw new Error(`Không thể tải dữ liệu Chi Tiêu cho Tháng ${selectedMonth}.`);
-
-      const roomData = await roomResponse.json();
-      const expenseData = await expenseResponse.json();
-
+      const [roomData, expenseData] = await Promise.all([fetchData(roomDataUrl), fetchData(expenseDataUrl)]);
+      
       let totalRevenue = 0;
       let roomHtml = '';
       if (roomData.values && roomData.values.length > 1) {
